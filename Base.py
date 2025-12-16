@@ -1,5 +1,6 @@
 import pygame
 import random
+import os
 from typing import List, Tuple
 
 class MapGenerator:
@@ -119,6 +120,8 @@ class MapGenerator:
 
 
 def main():
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    
     pygame.init()
     screen = pygame.display.set_mode((800, 600))
     pygame.display.set_caption("Random Map Generator")
