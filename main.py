@@ -1,11 +1,14 @@
 # main.py
 import pygame
 import os
+import random
 import sys
 
 # パッケージ内のクラスをインポート
 # main.pyと同じディレクトリにmap_engineがあることを想定
 from map_engine.map_generator import MapGenerator
+from Trap import Trap
+from Trapmanager import TrapManager
 
 # MapGenerator内で定義されているデフォルトサイズを取得
 DEFAULT_TILE_SIZE = 48 
@@ -52,6 +55,13 @@ def main():
     # --- 固定設定ここまで ---
     
     map_gen.generate()
+    
+    # トラップマネージャーの初期化
+    trap_manager = TrapManager(tile_size=DEFAULT_TILE_SIZE)
+    trap_manager.generate_traps(map_gen, trap_count=30)
+
+    camera_x = 0
+    camera_y = 0
     # プレイヤー生成
     from move import Player
     player = Player(
@@ -63,14 +73,25 @@ def main():
     # camera_y = 0
     camera_speed = 10 
     
+    # デバッグモード（罠の可視化）
+    show_traps = False
+
     running = True
     while running:
+        dt = clock.tick(60) / 16.0  # デルタタイム
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     map_gen.generate()
+                    trap_manager.generate_traps(map_gen, trap_count=30)
+                    camera_x = 0
+                    camera_y = 0
+                elif event.key == pygame.K_t:
+                    # Tキーで罠の可視化切り替え
+                    show_traps = not show_traps
                     # プレイヤーを新しいマップの最初の部屋に配置
                     player.tile_x = map_gen.rooms[0].centerx
                     player.tile_y = map_gen.rooms[0].centery
@@ -102,20 +123,33 @@ def main():
         
         # camera_x = max(0, min(camera_x, max_camera_x))
         # camera_y = max(0, min(camera_y, max_camera_y))
+        # camera_x = max(0, min(camera_x, max_camera_x))
+        # camera_y = max(0, min(camera_y, max_camera_y))
+
+        # トラップの更新
+        trap_manager.update(dt)
+        
         # 描画
         screen.fill((0, 0, 0))
         map_gen.draw(screen, camera_x, camera_y)
+        trap_manager.draw(screen, camera_x, camera_y, show_traps)
+        
         player.draw(screen, camera_x, camera_y)
         # UI表示
         font = pygame.font.Font(None, 24)
         text1 = font.render("SPACE: Regenerate | Arrows: Move", True, (255, 255, 255))
         
         tile_info = (f"Floor: TS{map_gen.floor_tileset}[{map_gen.floor_tile}] | "
-                     f"Wall: TS{map_gen.wall_tileset}[{map_gen.wall_tile}] (48x48 Tiles)")
+                f"Wall: TS{map_gen.wall_tileset}[{map_gen.wall_tile}] (48x48 Tiles)")
         text2 = font.render(tile_info, True, (150, 200, 255))
         
+        # トラップ数表示
+        trap_status = "Visible" if show_traps else "Invisible"
+        trap_text = font.render(f"Traps: {len(trap_manager.traps)} ({trap_status})", True, (255, 255, 100))
+
         screen.blit(text1, (10, 10))
         screen.blit(text2, (10, 35))
+        screen.blit(trap_text, (10, 60))
         
         pygame.display.flip()
         clock.tick(60)
