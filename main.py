@@ -52,26 +52,7 @@ def main():
     # 初期マップ生成
     map_gen.generate()
 
-    enemies: List[Enemy] = []
-    for room in map_gen.rooms:
-        # 各部屋に対して ENEMIES_PER_ROOM 体の敵を配置
-        for _ in range(ENEMIES_PER_ROOM):
-            # 部屋内のタイル座標をランダムに選び、ピクセル座標に変換
-            tx = random.randint(max(room.left + 1, 0), max(room.right - 2, room.left))
-            ty = random.randint(max(room.top + 1, 0), max(room.bottom - 2, room.top))
-            ex = tx * map_gen.tile_size
-            ey = ty * map_gen.tile_size
-            # 敵画像は未指定（フォールバック描画）。速度は適度に設定
-            enemies.append(
-                Enemy(
-                    ex,
-                    ey,
-                    hp=20,
-                    speed=40.0,
-                    image_path="Assets/enemy_kyuri.png",
-                    tile_size=map_gen.tile_size,
-                )
-            )
+    enemies = Enemy.spawn(map_gen, ENEMIES_PER_ROOM)
     
     # トラップマネージャーの初期化
     trap_manager = TrapManager(tile_size=DEFAULT_TILE_SIZE)
@@ -114,6 +95,7 @@ def main():
                     # マップ再生成
                     map_gen.generate()
                     trap_manager.generate_traps(map_gen, trap_count=30)
+                    enemies = Enemy.spawn(map_gen, ENEMIES_PER_ROOM)
                     
                     # 階段を再生成
                     if hasattr(map_gen, 'stairs_pos') and map_gen.stairs_pos:
@@ -176,6 +158,7 @@ def main():
             current_floor += 1
             map_gen.generate()
             trap_manager.generate_traps(map_gen, trap_count=30)
+            enemies = Enemy.spawn(map_gen, ENEMIES_PER_ROOM)
             
             # 階段を再生成
             if hasattr(map_gen, 'stairs_pos') and map_gen.stairs_pos:

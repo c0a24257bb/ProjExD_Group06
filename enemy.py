@@ -56,6 +56,29 @@ class Enemy:
 		# ランダム移動のためのタイマー
 		self._change_dir_timer = 0.0
 
+	@classmethod
+	def spawn(cls, map_gen, count_per_room: int) -> list["Enemy"]:
+		"""マップ情報に基づいて敵をランダムに配置・生成する。"""
+		enemies = []
+		for room in map_gen.rooms:
+			for _ in range(count_per_room):
+				tx = random.randint(max(room.left + 1, 0), max(room.right - 2, room.left))
+				ty = random.randint(max(room.top + 1, 0), max(room.bottom - 2, room.top))
+				ex = tx * map_gen.tile_size
+				ey = ty * map_gen.tile_size
+				
+				enemies.append(
+					cls(
+						ex,
+						ey,
+						hp=20,
+						speed=40.0,
+						image_path="Assets/enemy_kyuri.png",
+						tile_size=map_gen.tile_size,
+					)
+				)
+		return enemies
+
 	def draw(self, surface: pygame.Surface, camera_x: int = 0, camera_y: int = 0) -> None:
 		"""敵を描画する。カメラオフセットに対応。"""
 		screen_x = int(self.x) - camera_x
