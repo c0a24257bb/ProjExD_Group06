@@ -7,6 +7,7 @@ from map_engine.map_generator import MapGenerator
 from Trap import Trap
 from Trapmanager import TrapManager
 from Title import TitleScreen
+from Player_parameter import Player_Parameter
 
 DEFAULT_TILE_SIZE = 48 
 
@@ -18,6 +19,7 @@ def main():
     screen = pygame.display.set_mode((1000, 700)) 
     pygame.display.set_caption(".pngへの道")
     clock = pygame.time.Clock()
+    Cat = Player_Parameter()
     
     # タイトル画面を表示
     title_screen = TitleScreen(screen_width=1000, screen_height=700)
@@ -112,7 +114,10 @@ def main():
         damage = trap_manager.check_collisions(player.get_rect())
         if damage > 0:
             print(f"トラップ発動! ダメージ: {damage}")
-
+            Cat.Trap_dmg(damage)
+            if Cat.current_hp <= 0:
+                print(f"GAME OVER")
+                break
         trap_manager.update(dt)
         if player.tile_x == stairs.tile_x and player.tile_y == stairs.tile_y:
             print(f"階段に到達! 次の階層へ（Floor {current_floor + 1}）")
